@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+.pnpm-store/
+
+# Build and Output directories
+dist/
+frontend/dist/
+build/
+*.egg-info/
+.eggs/
+
+# Python Virtual Environments
+venv/
+backend/venv/
+.venv/
+env/
+ENV/
+
+# Python Cache & Compiled Files
+__pycache__/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+*.key
+*.pem
+
+# IDE & Editor Files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files & uploaded files
+tmp/
+temp/
