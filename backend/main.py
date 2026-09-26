@@ -22,34 +22,25 @@ from transcription import transcribe_file, transcribe_from_url, SUPPORTED_AUDIO,
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-
-
-# ─── App Setup ────────────────────────────────────────────────────────────────
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("🚀 AI Content Studio backend starting up...")
-    logger.info(f"   AI Provider: {os.getenv('AI_PROVIDER', 'gemini')}")
-    logger.info(f"   CORS origin: {FRONTEND_URL}")
-    yield
-    logger.info("🛑 Backend shutting down")
-
-
-app = FastAPI(
-    title="AI Content Studio API",
-    description="Transform any content into platform-specific posts using AI",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+raw_origins = os.getenv("FRONTEND_URL", "*")
+if raw_origins.strip() == "*":
+    cors_origins = ["*"]
+    allow_creds = False
+else:
+    cors_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    for dev_origin in ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"]:
+        if dev_origin not in cors_origins:
+            cors_origins.append(dev_origin)
+    allow_creds = True
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:3000", "http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials=allow_creds,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────
