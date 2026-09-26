@@ -174,19 +174,46 @@ def transcribe_from_url(url: str) -> dict:
         logger.info(f"Processing YouTube URL with ID: {video_id}")
         title = get_youtube_title(url) or f"YouTube Video ({video_id})"
         try:
-            yt_api = YouTubeTranscriptApi()
-            snippets = yt_api.fetch(video_id)
-            # Combine transcript snippets into coherent text
+            from youtube_transcript_api import YouTubeTranscriptApi
             raw_lines = []
-            for s in snippets:
-                text = getattr(s, "text", "") or ""
-                # Strip music symbols
+            try:
+                fetched = YouTubeTranscriptApi.get_transcript(video_id)
+                for item in fetched:
+                    if isinstance(item, dict):
+                        text = item.get("text", "")
+                    else:
+                        text = getattr(item, "text", str(item))
+                    if text:
+                        raw_lines.append(text)
+            except Exception as e1:
+                logger.info(f"get_transcript direct call failed ({e1}), trying list_transcripts...")
+                try:
+                    transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+                    try:
+                        transcript = transcript_list.find_transcript(['en', 'en-US', 'en-GB'])
+                    except Exception:
+                        transcript = next(iter(transcript_list))
+                    fetched = transcript.fetch()
+                    for item in fetched:
+                        if isinstance(item, dict):
+                            text = item.get("text", "")
+                        else:
+                            text = getattr(item, "text", str(item))
+                        if text:
+                            raw_lines.append(text)
+                except Exception as e2:
+                    logger.warning(f"list_transcripts fallback failed: {e2}")
+                    raise e1
+
+            # Combine transcript snippets into coherent text
+            clean_lines = []
+            for text in raw_lines:
                 clean = re.sub(r'[\u266a\u266b\u2669\u266c♪♫\[\]]', '', text).strip()
                 if clean:
-                    raw_lines.append(clean)
+                    clean_lines.append(clean)
 
-            transcript = " ".join(raw_lines)
-            if not transcript or len(transcript) < 30:
+            transcript = " ".join(clean_lines)
+            if not transcript or len(transcript) < 20:
                 raise ValueError("Transcript fetched from YouTube was empty or too brief.")
 
             return {
@@ -198,9 +225,8 @@ def transcribe_from_url(url: str) -> dict:
             }
         except Exception as e:
             logger.warning(f"YouTube transcript extraction failed for {video_id}: {e}")
-            # If YouTube API fails (e.g. subtitles disabled), provide clean informative error or fallback
             raise ValueError(
-                f"Could not extract captions for this YouTube video ({str(e)}). "
+                f"Could not extract captions for this YouTube video: {str(e)}. "
                 "Ensure the video has closed captions / subtitles enabled."
             )
 
