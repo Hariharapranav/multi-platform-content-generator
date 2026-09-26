@@ -1,6 +1,10 @@
 import type { AnalyzeResponse, Platform } from '@/types'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const DEFAULT_BACKEND = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
+  ? 'https://backend-delta-ten-11.vercel.app'
+  : 'http://localhost:8000'
+
+const BASE_URL = import.meta.env.VITE_API_URL || DEFAULT_BACKEND
 
 export async function analyzeContent(content: string): Promise<AnalyzeResponse> {
   const res = await fetch(`${BASE_URL}/api/analyze`, {

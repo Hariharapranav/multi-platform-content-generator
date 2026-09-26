@@ -28,10 +28,16 @@ if raw_origins.strip() == "*":
     allow_creds = False
 else:
     cors_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
-    for dev_origin in ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"]:
-        if dev_origin not in cors_origins:
-            cors_origins.append(dev_origin)
+    for default_origin in [
+        "https://multicontent-studio.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173"
+    ]:
+        if default_origin not in cors_origins:
+            cors_origins.append(default_origin)
     allow_creds = True
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -40,7 +46,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────
