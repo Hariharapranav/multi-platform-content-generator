@@ -1,6 +1,7 @@
 """
 FastAPI Backend — AI Content Studio
 """
+from fastapi import applications
 import logging
 import os
 import tempfile
@@ -21,6 +22,23 @@ from transcription import transcribe_file, transcribe_from_url, SUPPORTED_AUDIO,
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
+
+# ─── App Setup ────────────────────────────────────────────────────────────────
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("🚀 AI Content Studio backend starting up...")
+    logger.info(f"   AI Provider: {os.getenv('AI_PROVIDER', 'gemini')}")
+    yield
+    logger.info("🛑 Backend shutting down")
+
+
+app = FastAPI(
+    title="AI Content Studio API",
+    description="Transform any content into platform-specific posts using AI",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 
 raw_origins = os.getenv("FRONTEND_URL", "*")
 if raw_origins.strip() == "*":
@@ -46,6 +64,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────
